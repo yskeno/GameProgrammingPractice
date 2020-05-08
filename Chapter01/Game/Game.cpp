@@ -16,9 +16,9 @@ Game::Game()
 	, mTicksCount(0)
 	, mIsRunning(true)
 	, mPaddleDir(0)
+	, mPaddlePos{ 10.0f, static_cast<float>(windowH) / 2.0f }
 	, mBallPos{ static_cast<float>(windowW) / 2.0f, static_cast<float>(windowH) / 2.0f }
 	, mBallVel{ -200.0f, 235.0f }
-	, mPaddlePos{ 10.0f, static_cast<float>(windowH) / 2.0f }
 {
 }
 
@@ -59,13 +59,10 @@ bool Game::Initialize() {
 	}
 
 	// Initialize mBall & mPaddlePos
-	mPaddlePos.x = 10.0f;
-	mPaddlePos.y = static_cast<float>(windowH) / 2.0f;
-	mBallPos.x = static_cast<float>(windowW) / 2.0f;
-	mBallPos.y = static_cast<float>(windowH) / 2.0f;
-	mBallVel.x = -200.0f;
-	mBallVel.y = 235.0f;
-
+	/* Initialize in constructor initialization list
+	mPaddlePos.x = 10.0f; mPaddlePos.y = static_cast<float>(windowH) / 2.0f; mBallPos.x = static_cast<float>(windowW) / 2.0f;
+	mBallPos.y = static_cast<float>(windowH) / 2.0f; mBallVel.x = -200.0f; mBallVel.y = 235.0f;
+	*/
 	return true;
 }
 
