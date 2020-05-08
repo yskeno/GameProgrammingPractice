@@ -350,5 +350,5 @@ MigrationBackup/
 .ionide/
 
 # Users additions
-/include
-/External
+External/*
+!/External/ExternalLibraryFolder.txt
