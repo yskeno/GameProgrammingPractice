@@ -16,6 +16,9 @@ Game::Game()
 	, mTicksCount(0)
 	, mIsRunning(true)
 	, mPaddleDir(0)
+	, mBallPos{ static_cast<float>(windowW) / 2.0f, static_cast<float>(windowH) / 2.0f }
+	, mBallVel{ -200.0f, 235.0f }
+	, mPaddlePos{ 10.0f, static_cast<float>(windowH) / 2.0f }
 {
 }
 
@@ -149,12 +152,12 @@ void Game::UpdateGame() {
 			mPaddlePos.y = windowH - paddleH / 2.0f - thickness;
 	}
 
-	// Update ball position based on ball velocity
+	// Update ball position based on ball 
 	mBallPos.x += mBallVel.x * deltaTime;
 	mBallPos.y += mBallVel.y * deltaTime;
 
 	// Bounce if needed
-	// for x-coordinate
+	// ***for x-coordinate***
 	// Did we intersect with the paddle?
 	// Which side(upper/lower) the ball is on.
 	float diff = mPaddlePos.y - mBallPos.y;
@@ -170,18 +173,29 @@ void Game::UpdateGame() {
 		// the ball is moving to the left
 		&& mBallVel.x < 0.0f)
 		mBallVel.x *= -1.0f;
+	// Did the ball go off the screen?(if so, end game)
+	else if (mBallPos.x <= 0.0f) {
+		// Continue dialog and reset "only" ball position so the ball moves differently from last game.
+		if (0 == SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, "Game Over!", "See you next time.", mWindow)) {
+			// Reset only the ball position.
+			mBallPos.x = static_cast<float>(windowW) / 2.0f;
+			mBallPos.y = static_cast<float>(windowH) / 2.0f;
+			mBallVel = { -200.0f, 235.0f };
+			return;
+		}
+		mIsRunning = false;
+	}
 	// Did the ball collide with the right wall?
 	else if (mBallPos.x >= (windowW - thickness) && mBallVel.x > 0.0f)
 		mBallVel.x *= -1.0f;
 
-	// for y-coordinate
+	// ***for y-coordinate***
 	// Did the ball collide with the top wall?
-	// if (ball is into top wall && ball move upward)
-	if (mBallPos.y <= thickness && mBallVel.y < 0.0f)
-		mBallVel.y *= -1;
 	// Did the ball collide with the bottom wall?
-	else if (mBallPos.y >= (windowH - thickness) && mBallVel.y > 0.0f)
-		mBallVel.y *= -1;
+	// if (ball is into top wall && ball move upward) || <for the bottom>
+	if ((mBallPos.y <= thickness && mBallVel.y < 0.0f)
+		|| (mBallPos.y >= (windowH - thickness) && mBallVel.y > 0.0f))
+		mBallVel.y *= -1.0f;
 }
 
 void Game::GenerateOutput() {
