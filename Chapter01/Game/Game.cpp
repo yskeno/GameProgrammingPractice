@@ -19,6 +19,9 @@ Game::Game()
 	, mPaddlePos{ 10.0f, static_cast<float>(windowH) / 2.0f }
 	, mBallPos{ static_cast<float>(windowW) / 2.0f, static_cast<float>(windowH) / 2.0f }
 	, mBallVel{ -200.0f, 235.0f }
+	, mPaddleSpeedFactor(1.0)
+	, mPaddleMaxSpeedFactor(2.0)
+	, mIsPlaying(true)
 {
 }
 
@@ -139,7 +142,7 @@ void Game::UpdateGame() {
 	// Update paddle position based on direction(W/S keys input)
 	if (mPaddleDir != 0) {
 		// paddle move speed is 300.0f pixels/seconds
-		mPaddlePos.y += mPaddleDir * 300.0f * deltaTime;
+		mPaddlePos.y += mPaddleDir * 300.0f * mPaddleSpeedFactor * deltaTime;
 		// Make sure paddle doesn't move off screen!
 		// for boundary on top of screen
 		if (mPaddlePos.y < (paddleH / 2.0f + thickness))
@@ -168,16 +171,25 @@ void Game::UpdateGame() {
 		// the ball x-position is not same as the paddle x-position
 		&& mBallPos.x <= 25.0f && mBallPos.x >= 20.0f
 		// the ball is moving to the left
-		&& mBallVel.x < 0.0f)
+		&& mBallVel.x < 0.0f) {
 		mBallVel.x *= -1.0f;
+		// Paddle move speed faster
+		mPaddleSpeedFactor = (mPaddleSpeedFactor >= mPaddleMaxSpeedFactor) ? mPaddleMaxSpeedFactor : mPaddleSpeedFactor * 1.1;
+		SDL_Log("mPaddleSpeedFactor: %f", mPaddleSpeedFactor);
+	}
 	// Did the ball go off the screen?(if so, end game)
 	else if (mBallPos.x <= 0.0f) {
+		// Set BG color red.
+		mIsPlaying = false;
+		GenerateOutput();
 		// Continue dialog and reset "only" ball position so the ball moves differently from last game.
 		if (0 == SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, "Game Over!", "See you next time.", mWindow)) {
 			// Reset only the ball position.
 			mBallPos.x = static_cast<float>(windowW) / 2.0f;
 			mBallPos.y = static_cast<float>(windowH) / 2.0f;
 			mBallVel = { -200.0f, 235.0f };
+			mPaddleSpeedFactor = 1.0f;
+			mIsPlaying = true;
 			return;
 		}
 		mIsRunning = false;
@@ -201,14 +213,22 @@ void Game::GenerateOutput() {
 	// 3.Swap the front buffer and back buffer.
 
 	// Set draw color to blue
-	SDL_SetRenderDrawColor(
-		mRenderer,
-		0,		// R
-		0,		// G
-		255,	// B
-		255		// A
-	);
-
+	if (mIsPlaying)
+		SDL_SetRenderDrawColor(
+			mRenderer,
+			0,		// R
+			0,		// G
+			255,	// B
+			255		// A
+		);
+	else
+		SDL_SetRenderDrawColor(
+			mRenderer,
+			255,	// R
+			0,		// G
+			0,		// B
+			255		// A
+		);
 	// Clear back buffer
 	SDL_RenderClear(mRenderer);
 

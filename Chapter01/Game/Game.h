@@ -43,5 +43,10 @@ private:
 	Vector2 mBallPos;
 	// Velocity of ball
 	Vector2 mBallVel;
+
+	// Addition
+	bool mIsPlaying;
+	float mPaddleSpeedFactor;
+	float mPaddleMaxSpeedFactor;
 };
 
