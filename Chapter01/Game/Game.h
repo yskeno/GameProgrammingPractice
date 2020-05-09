@@ -48,5 +48,11 @@ private:
 	bool mIsPlaying;
 	float mMoveSpeedFactor;
 	float mMoveSpeedFactorMax;
+
+	// Exercise 1.1
+	bool mIs2PlayersMode;
+	// Position of player 2 paddle
+	Vector2 mPaddle2Pos;
+	int mPaddle2Dir;
 };
 

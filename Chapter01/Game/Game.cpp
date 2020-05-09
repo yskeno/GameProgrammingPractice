@@ -22,6 +22,9 @@ Game::Game()
 	, mMoveSpeedFactor(1.0f)
 	, mMoveSpeedFactorMax(1.3f)
 	, mIsPlaying(true)
+	, mIs2PlayersMode(false)
+	, mPaddle2Dir(0)
+	, mPaddle2Pos{ static_cast<float>(windowW - 10 - thickness), static_cast<float>(windowH) / 2.0f }
 {
 }
 
@@ -33,6 +36,42 @@ bool Game::Initialize() {
 		// output messages to the console in SDL
 		SDL_Log("Unable to initialize SDL: %s", SDL_GetError());
 		return false;
+	}
+
+	// Is 2 Players Mode?
+	const SDL_MessageBoxButtonData modeButtons[] = {
+		// {.flags, .buttonid, .text}
+		{0,1,"2 Players"},
+		{SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,0,"1 Player"},
+	};
+	const SDL_MessageBoxColorScheme msgBoxColor{ {
+		{255,0,0},		// [SDL_MESSAGEBOX_COLOR_BACKGROUND]
+		{0,255,0},		// [SDL_MESSAGEBOX_COLOR_TEXT]
+		{255,255,0},	// [SDL_MESSAGEBOX_COLOR_BUTTON_BORDER]
+		{0,0,255},		// [SDL_MESSAGEBOX_COLOR_BUTTON_BACKGROUND]
+		{255,0,255}		// [SDL_MESSAGEBOX_COLOR_BUTTON_SELECTED]
+		} };
+	const SDL_MessageBoxData modeMsgBoxData = {
+		0,							// .flags
+		NULL,						// .window
+		"Play mode select",			// .title
+		"",							// .message
+		SDL_arraysize(modeButtons),	// .numbuttons
+		modeButtons,				// .buttons
+		&msgBoxColor				// .colorScheme
+	};
+	int buttonId;
+	if (SDL_ShowMessageBox(&modeMsgBoxData, &buttonId) < 0) {
+		SDL_Log("error displaying message box");
+		return 1;
+	}
+	if (buttonId == 1) {
+		mIs2PlayersMode = true;
+		SDL_Log("PlayMode: 2 Players");
+	}
+	else {
+		mIs2PlayersMode = false;
+		SDL_Log("PlayMode: 1 Players");
 	}
 
 	// Create an SDL Window
@@ -115,6 +154,15 @@ void Game::ProcessInput() {
 	if (state[SDL_SCANCODE_S])
 		mPaddleDir += 1;
 	// when both W/S key are pressed, mPaddleDir is zero because add and subtract from mPaddleDir(0).
+
+	// Update paddle2 direction based on I/K keys
+	if (mIs2PlayersMode) {
+		mPaddle2Dir = 0;
+		if (state[SDL_SCANCODE_I])
+			mPaddle2Dir -= 1;
+		if (state[SDL_SCANCODE_K])
+			mPaddle2Dir += 1;
+	}
 }
 
 void Game::UpdateGame() {
@@ -152,6 +200,17 @@ void Game::UpdateGame() {
 			mPaddlePos.y = windowH - paddleH / 2.0f - thickness;
 	}
 
+	// Update paddle2 position based on direction(I/K keys input)
+	if (mIs2PlayersMode) {
+		if (mPaddle2Dir != 0) {
+			mPaddle2Pos.y += mPaddle2Dir * 300.0f * mMoveSpeedFactor * deltaTime;
+			if (mPaddle2Pos.y < (paddleH / 2.0f + thickness))
+				mPaddle2Pos.y = paddleH / 2.0f + thickness;
+			else if (mPaddle2Pos.y > (windowH - paddleH / 2.0f - thickness))
+				mPaddle2Pos.y = windowH - paddleH / 2.0f - thickness;
+		}
+	}
+
 	// Update ball position based on ball 
 	mBallPos.x += mBallVel.x * deltaTime;
 	mBallPos.y += mBallVel.y * deltaTime;
@@ -166,12 +225,12 @@ void Game::UpdateGame() {
 	diff = (diff > 0.0f) ? diff : -diff;
 	// Our y-difference is small enough
 	// the ball exists within the paddle height positions.
-	if (diff <= paddleH / 2.0f
+	if (diff <= paddleH / 2.0f &&
 		// We are in the correct x-position
 		// the ball x-position is not same as the paddle x-position
-		&& mBallPos.x <= 25.0f && mBallPos.x >= 20.0f
+		mBallPos.x <= 25.0f && mBallPos.x >= 20.0f &&
 		// the ball is moving to the left
-		&& mBallVel.x < 0.0f) {
+		mBallVel.x < 0.0f) {
 		mBallVel.x *= -1.0f;
 		// Paddle & Ball move speed faster
 		mMoveSpeedFactor = (mMoveSpeedFactorMax > mMoveSpeedFactor * 1.05f) ? mMoveSpeedFactor * 1.05f : mMoveSpeedFactorMax;
@@ -185,20 +244,51 @@ void Game::UpdateGame() {
 		mIsPlaying = false;
 		GenerateOutput();
 		// Continue dialog and reset "only" ball position so the ball moves differently from last game.
-		if (0 == SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, "Game Over!", "See you next time.", mWindow)) {
-			// Reset only the ball position.
+		if (mIs2PlayersMode)
+			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, "Game Set!", "Player 2 win!", mWindow);
+		else
+			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, "Game Over!", "See you next time.", mWindow);
+		// Reset only the ball position.
+		mBallPos.x = static_cast<float>(windowW) / 2.0f;
+		mBallPos.y = static_cast<float>(windowH) / 2.0f;
+		mBallVel = { -200.0f,  235.0f };
+		mMoveSpeedFactor = 1.0f;
+		mIsPlaying = true;
+		return;
+
+		mIsRunning = false;
+	}
+	// Did the ball collide with the right wall?(when single player mode)
+	else if (mBallPos.x >= (windowW - thickness) && mBallVel.x > 0.0f && !mIs2PlayersMode)
+		mBallVel.x *= -1.0f;
+
+	// Bounce for 2 player mode
+	if (mIs2PlayersMode) {
+		float diff2 = mPaddle2Pos.y - mBallPos.y;
+		diff2 = (diff2 > 0.0f) ? diff2 : -diff2;
+		if (diff2 <= paddleH / 2.0f &&
+			mBallPos.x >= (windowW - 25.0f) && mBallPos.x >= (windowW - 20.0f) &&
+			mBallVel.x > 0.0f) {
+			mBallVel.x *= -1.0f;
+			mMoveSpeedFactor = (mMoveSpeedFactorMax > mMoveSpeedFactor * 1.05f) ? mMoveSpeedFactor * 1.05f : mMoveSpeedFactorMax;
+			if (mMoveSpeedFactorMax != mMoveSpeedFactor)
+				mBallVel.x *= mMoveSpeedFactor;
+			SDL_Log("mBallVel.x: %f mBallVel.y: %f mPaddle mMoveSpeedFactor: %f / %f", mBallVel.x, mBallVel.y, mMoveSpeedFactor, mMoveSpeedFactorMax);
+		}
+		else if (mBallPos.x >= windowW) {
+			mIsPlaying = false;
+			GenerateOutput();
+			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, "Game set!", "Player 1 win!", mWindow);
 			mBallPos.x = static_cast<float>(windowW) / 2.0f;
 			mBallPos.y = static_cast<float>(windowH) / 2.0f;
 			mBallVel = { -200.0f,  235.0f };
 			mMoveSpeedFactor = 1.0f;
 			mIsPlaying = true;
 			return;
+
+			mIsRunning = false;
 		}
-		mIsRunning = false;
 	}
-	// Did the ball collide with the right wall?
-	else if (mBallPos.x >= (windowW - thickness) && mBallVel.x > 0.0f)
-		mBallVel.x *= -1.0f;
 
 	// ***for y-coordinate***
 	// Did the ball collide with the top wall?
@@ -255,13 +345,6 @@ void Game::GenerateOutput() {
 	wall.y = windowH - thickness;
 	SDL_RenderFillRect(mRenderer, &wall);
 
-	// Draw right wall
-	wall.x = windowW - thickness;
-	wall.y = 0;
-	wall.w = thickness;
-	wall.h = windowH;
-	SDL_RenderFillRect(mRenderer, &wall);
-
 
 	// Draw paddle
 	// convert(static_cast) from floats into integer(which SDL_Rect uses).
@@ -272,6 +355,23 @@ void Game::GenerateOutput() {
 		static_cast<int>(paddleH)
 	};
 	SDL_RenderFillRect(mRenderer, &paddle);
+
+	if (mIs2PlayersMode) {
+		// Drae paddle for player 2
+		paddle.x = static_cast<int>(mPaddle2Pos.x);
+		paddle.y = static_cast<int>(mPaddle2Pos.y - paddleH / 2);
+		paddle.w = thickness;
+		paddle.h = static_cast<int>(paddleH);
+		SDL_RenderFillRect(mRenderer, &paddle);
+	}
+	else {
+		// Draw right wall
+		wall.x = windowW - thickness;
+		wall.y = 0;
+		wall.w = thickness;
+		wall.h = windowH;
+		SDL_RenderFillRect(mRenderer, &wall);
+	}
 
 	// Draw ball
 	SDL_Rect ball{
