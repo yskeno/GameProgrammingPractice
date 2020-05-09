@@ -54,5 +54,10 @@ private:
 	// Position of player 2 paddle
 	Vector2 mPaddle2Pos;
 	int mPaddle2Dir;
+
+	// For readable
+	void UpdatePaddlePos(const int& paddleDir, Vector2& paddlePos, const float& deltatime);
+	void BounceOffPaddle();
+	bool GoOffScreen();
 };
 

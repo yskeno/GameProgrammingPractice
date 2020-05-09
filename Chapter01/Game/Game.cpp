@@ -188,28 +188,11 @@ void Game::UpdateGame() {
 	mTicksCount = SDL_GetTicks();
 
 	// Update paddle position based on direction(W/S keys input)
-	if (mPaddleDir != 0) {
-		// paddle move speed is 300.0f pixels/seconds
-		mPaddlePos.y += mPaddleDir * 300.0f * mMoveSpeedFactor * deltaTime;
-		// Make sure paddle doesn't move off screen!
-		// for boundary on top of screen
-		if (mPaddlePos.y < (paddleH / 2.0f + thickness))
-			mPaddlePos.y = paddleH / 2.0f + thickness;
-		// for boundary on bottom of screen
-		else if (mPaddlePos.y > (windowH - paddleH / 2.0f - thickness))
-			mPaddlePos.y = windowH - paddleH / 2.0f - thickness;
-	}
+	UpdatePaddlePos(mPaddleDir, mPaddlePos, deltaTime);
 
 	// Update paddle2 position based on direction(I/K keys input)
-	if (mIs2PlayersMode) {
-		if (mPaddle2Dir != 0) {
-			mPaddle2Pos.y += mPaddle2Dir * 300.0f * mMoveSpeedFactor * deltaTime;
-			if (mPaddle2Pos.y < (paddleH / 2.0f + thickness))
-				mPaddle2Pos.y = paddleH / 2.0f + thickness;
-			else if (mPaddle2Pos.y > (windowH - paddleH / 2.0f - thickness))
-				mPaddle2Pos.y = windowH - paddleH / 2.0f - thickness;
-		}
-	}
+	if (mIs2PlayersMode)
+		UpdatePaddlePos(mPaddle2Dir, mPaddle2Pos, deltaTime);
 
 	// Update ball position based on ball 
 	mBallPos.x += mBallVel.x * deltaTime;
@@ -217,83 +200,49 @@ void Game::UpdateGame() {
 
 	// Bounce if needed
 	// ***for x-coordinate***
-	// Did we intersect with the paddle?
+		// Did we intersect with the paddle?
 	// Which side(upper/lower) the ball is on.
+	// + value: ball is upper from paddle
+	// - value: ball is lower from paddle
 	float diff = mPaddlePos.y - mBallPos.y;
 	// Take absolute value of difference
-	// diff > 0.0f is "the ball is on lower side".
+	// Get distance between paddlePos and ballPos.
 	diff = (diff > 0.0f) ? diff : -diff;
+
 	// Our y-difference is small enough
-	// the ball exists within the paddle height positions.
-	if (diff <= paddleH / 2.0f &&
+// the ball exists within the paddle height positions.
+	if (diff <= paddleH / 2.0f
 		// We are in the correct x-position
 		// the ball x-position is not same as the paddle x-position
-		mBallPos.x <= 25.0f && mBallPos.x >= 20.0f &&
+		&& mBallPos.x <= 25.0f
+		&& mBallPos.x >= 20.0f
 		// the ball is moving to the left
-		mBallVel.x < 0.0f) {
-		mBallVel.x *= -1.0f;
-		// Paddle & Ball move speed faster
-		mMoveSpeedFactor = (mMoveSpeedFactorMax > mMoveSpeedFactor * 1.05f) ? mMoveSpeedFactor * 1.05f : mMoveSpeedFactorMax;
-		if (mMoveSpeedFactorMax != mMoveSpeedFactor)
-			mBallVel.x *= mMoveSpeedFactor;
-		SDL_Log("mBallVel.x: %f mBallVel.y: %f mPaddle mMoveSpeedFactor: %f / %f", mBallVel.x, mBallVel.y, mMoveSpeedFactor, mMoveSpeedFactorMax);
-	}
+		&& mBallVel.x < 0.0f)
+		BounceOffPaddle();
+
 	// Did the ball go off the screen?(if so, end game)
-	else if (mBallPos.x <= 0.0f) {
-		// Set BG color red.
-		mIsPlaying = false;
-		GenerateOutput();
-		// Continue dialog and reset "only" ball position so the ball moves differently from last game.
-		if (mIs2PlayersMode)
-			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, "Game Set!", "Player 2 win!", mWindow);
-		else
-			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, "Game Over!", "See you next time.", mWindow);
-		// Reset only the ball position.
-		mBallPos.x = static_cast<float>(windowW) / 2.0f;
-		mBallPos.y = static_cast<float>(windowH) / 2.0f;
-		mBallVel = { -200.0f,  235.0f };
-		mMoveSpeedFactor = 1.0f;
-		mIsPlaying = true;
+	else if (GoOffScreen())
 		return;
 
-		mIsRunning = false;
-	}
 	// Did the ball collide with the right wall?(when single player mode)
-	else if (mBallPos.x >= (windowW - thickness) && mBallVel.x > 0.0f && !mIs2PlayersMode)
+	else if (!mIs2PlayersMode && mBallPos.x >= (windowW - thickness) && mBallVel.x > 0.0f)
 		mBallVel.x *= -1.0f;
 
-	// Bounce for 2 player mode
+	// for player 2 paddle
 	if (mIs2PlayersMode) {
 		float diff2 = mPaddle2Pos.y - mBallPos.y;
 		diff2 = (diff2 > 0.0f) ? diff2 : -diff2;
-		if (diff2 <= paddleH / 2.0f &&
-			mBallPos.x >= (windowW - 25.0f) && mBallPos.x >= (windowW - 20.0f) &&
-			mBallVel.x > 0.0f) {
-			mBallVel.x *= -1.0f;
-			mMoveSpeedFactor = (mMoveSpeedFactorMax > mMoveSpeedFactor * 1.05f) ? mMoveSpeedFactor * 1.05f : mMoveSpeedFactorMax;
-			if (mMoveSpeedFactorMax != mMoveSpeedFactor)
-				mBallVel.x *= mMoveSpeedFactor;
-			SDL_Log("mBallVel.x: %f mBallVel.y: %f mPaddle mMoveSpeedFactor: %f / %f", mBallVel.x, mBallVel.y, mMoveSpeedFactor, mMoveSpeedFactorMax);
-		}
-		else if (mBallPos.x >= windowW) {
-			mIsPlaying = false;
-			GenerateOutput();
-			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, "Game set!", "Player 1 win!", mWindow);
-			mBallPos.x = static_cast<float>(windowW) / 2.0f;
-			mBallPos.y = static_cast<float>(windowH) / 2.0f;
-			mBallVel = { -200.0f,  235.0f };
-			mMoveSpeedFactor = 1.0f;
-			mIsPlaying = true;
-			return;
-
-			mIsRunning = false;
-		}
+		if (diff2 <= paddleH / 2.0f
+			&& mBallPos.x >= (windowW - 25.0f)
+			&& mBallPos.x <= (windowW - 20.0f)
+			&& mBallVel.x > 0.0f)
+			BounceOffPaddle();
 	}
 
 	// ***for y-coordinate***
 	// Did the ball collide with the top wall?
 	// Did the ball collide with the bottom wall?
-	// if (ball is into top wall && ball move upward) || <for the bottom>
+	// if ( (ball is into top wall && ball move upward) || (for the bottom) )
 	if ((mBallPos.y <= thickness && mBallVel.y < 0.0f)
 		|| (mBallPos.y >= (windowH - thickness) && mBallVel.y > 0.0f))
 		mBallVel.y *= -1.0f;
@@ -384,4 +333,59 @@ void Game::GenerateOutput() {
 
 	// Swap front buffer and back buffer
 	SDL_RenderPresent(mRenderer);
+}
+
+
+void Game::UpdatePaddlePos(const int& paddleDir, Vector2& paddlePos, const float& deltaTime) {
+	// Update paddle position based on direction(W/S keys input)
+	if (paddleDir != 0) {
+		// paddle move speed is 300.0f pixels/seconds
+		paddlePos.y += paddleDir * 300.0f * mMoveSpeedFactor * deltaTime;
+		// Make sure paddle doesn't move off screen!
+		// for boundary on top of screen
+		if (paddlePos.y < (paddleH / 2.0f + thickness))
+			paddlePos.y = paddleH / 2.0f + thickness;
+		// for boundary on bottom of screen
+		else if (paddlePos.y > (windowH - paddleH / 2.0f - thickness))
+			paddlePos.y = windowH - paddleH / 2.0f - thickness;
+	}
+}
+
+void Game::BounceOffPaddle() {
+	mBallVel.x *= -1.0f;
+
+	// Paddle & Ball move speed faster
+	mMoveSpeedFactor = (mMoveSpeedFactorMax > mMoveSpeedFactor * 1.05f) ? mMoveSpeedFactor * 1.05f : mMoveSpeedFactorMax;
+	if (mMoveSpeedFactorMax != mMoveSpeedFactor)
+		mBallVel.x *= mMoveSpeedFactor;
+	SDL_Log("mBallVel.x: %f mBallVel.y: %f mPaddle mMoveSpeedFactor: %f / %f", mBallVel.x, mBallVel.y, mMoveSpeedFactor, mMoveSpeedFactorMax);
+}
+
+bool Game::GoOffScreen() {
+	// Did the ball go off the screen?(if so, end game)
+	if (mBallPos.x <= 0.0f
+		|| (mIs2PlayersMode && mBallPos.x >= windowW)) {
+		// Set BG color red.
+		mIsPlaying = false;
+		GenerateOutput();
+		// Continue dialog and reset "only" ball position so the ball moves differently from last game.
+		if (mBallPos.x <= 0.0f)
+			if (!mIs2PlayersMode)
+				SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, "Game Over!", "See you next time.", mWindow);
+			else
+				SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, "Game Set!", "Player 2 win!", mWindow);
+		else
+			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, "Game Set!", "Player 1 win!", mWindow);
+
+		// Reset only the ball position.
+		mBallPos.x = static_cast<float>(windowW) / 2.0f;
+		mBallPos.y = static_cast<float>(windowH) / 2.0f;
+		mBallVel = { -200.0f,  235.0f };
+		mMoveSpeedFactor = 1.0f;
+		mIsPlaying = true;
+		return true;
+
+		//mIsRunning = false;
+	}
+	return false;
 }
