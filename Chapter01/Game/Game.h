@@ -46,7 +46,7 @@ private:
 
 	// Addition
 	bool mIsPlaying;
-	float mPaddleSpeedFactor;
-	float mPaddleMaxSpeedFactor;
+	float mMoveSpeedFactor;
+	float mMoveSpeedFactorMax;
 };
 

@@ -19,8 +19,8 @@ Game::Game()
 	, mPaddlePos{ 10.0f, static_cast<float>(windowH) / 2.0f }
 	, mBallPos{ static_cast<float>(windowW) / 2.0f, static_cast<float>(windowH) / 2.0f }
 	, mBallVel{ -200.0f, 235.0f }
-	, mPaddleSpeedFactor(1.0)
-	, mPaddleMaxSpeedFactor(2.0)
+	, mMoveSpeedFactor(1.0f)
+	, mMoveSpeedFactorMax(1.3f)
 	, mIsPlaying(true)
 {
 }
@@ -142,7 +142,7 @@ void Game::UpdateGame() {
 	// Update paddle position based on direction(W/S keys input)
 	if (mPaddleDir != 0) {
 		// paddle move speed is 300.0f pixels/seconds
-		mPaddlePos.y += mPaddleDir * 300.0f * mPaddleSpeedFactor * deltaTime;
+		mPaddlePos.y += mPaddleDir * 300.0f * mMoveSpeedFactor * deltaTime;
 		// Make sure paddle doesn't move off screen!
 		// for boundary on top of screen
 		if (mPaddlePos.y < (paddleH / 2.0f + thickness))
@@ -173,9 +173,11 @@ void Game::UpdateGame() {
 		// the ball is moving to the left
 		&& mBallVel.x < 0.0f) {
 		mBallVel.x *= -1.0f;
-		// Paddle move speed faster
-		mPaddleSpeedFactor = (mPaddleSpeedFactor >= mPaddleMaxSpeedFactor) ? mPaddleMaxSpeedFactor : mPaddleSpeedFactor * 1.1;
-		SDL_Log("mPaddleSpeedFactor: %f", mPaddleSpeedFactor);
+		// Paddle & Ball move speed faster
+		mMoveSpeedFactor = (mMoveSpeedFactorMax > mMoveSpeedFactor * 1.05f) ? mMoveSpeedFactor * 1.05f : mMoveSpeedFactorMax;
+		if (mMoveSpeedFactorMax != mMoveSpeedFactor)
+			mBallVel.x *= mMoveSpeedFactor;
+		SDL_Log("mBallVel.x: %f mBallVel.y: %f mPaddle mMoveSpeedFactor: %f / %f", mBallVel.x, mBallVel.y, mMoveSpeedFactor, mMoveSpeedFactorMax);
 	}
 	// Did the ball go off the screen?(if so, end game)
 	else if (mBallPos.x <= 0.0f) {
@@ -187,8 +189,8 @@ void Game::UpdateGame() {
 			// Reset only the ball position.
 			mBallPos.x = static_cast<float>(windowW) / 2.0f;
 			mBallPos.y = static_cast<float>(windowH) / 2.0f;
-			mBallVel = { -200.0f, 235.0f };
-			mPaddleSpeedFactor = 1.0f;
+			mBallVel = { -200.0f,  235.0f };
+			mMoveSpeedFactor = 1.0f;
 			mIsPlaying = true;
 			return;
 		}
