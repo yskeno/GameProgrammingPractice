@@ -17,8 +17,6 @@ Game::Game()
 	, mIsRunning(true)
 	, mPaddleDir(0)
 	, mPaddlePos{ 10.0f, static_cast<float>(windowH) / 2.0f }
-	, mBallPos{ static_cast<float>(windowW) / 2.0f, static_cast<float>(windowH) / 2.0f }
-	, mBallVel{ -200.0f, 235.0f }
 	, mMoveSpeedFactor(1.0f)
 	, mMoveSpeedFactorMax(1.3f)
 	, mIsPlaying(true)
@@ -28,97 +26,109 @@ Game::Game()
 {
 }
 
-bool Game::Initialize() {
+bool Game::Initialize()
+{
 	// Initialize SDL
 	// SDL subsystems full listed: https://wiki.libsdl.org
 	int sdlResult = SDL_Init(SDL_INIT_VIDEO);
-	if (sdlResult != 0) {
+	if (sdlResult != 0)
+	{
 		// output messages to the console in SDL
 		SDL_Log("Unable to initialize SDL: %s", SDL_GetError());
 		return false;
 	}
 
 	// Is 2 Players Mode?
-	const SDL_MessageBoxButtonData modeButtons[] = {
-		// {.flags, .buttonid, .text}
-		{0,1,"2 Players"},
-		{SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,0,"1 Player"},
-	};
-	const SDL_MessageBoxColorScheme msgBoxColor{ {
-		{255,0,0},		// [SDL_MESSAGEBOX_COLOR_BACKGROUND]
-		{0,255,0},		// [SDL_MESSAGEBOX_COLOR_TEXT]
-		{255,255,0},	// [SDL_MESSAGEBOX_COLOR_BUTTON_BORDER]
-		{0,0,255},		// [SDL_MESSAGEBOX_COLOR_BUTTON_BACKGROUND]
-		{255,0,255}		// [SDL_MESSAGEBOX_COLOR_BUTTON_SELECTED]
-		} };
-	const SDL_MessageBoxData modeMsgBoxData = {
-		0,							// .flags
-		NULL,						// .window
-		"Play mode select",			// .title
-		"",							// .message
-		SDL_arraysize(modeButtons),	// .numbuttons
-		modeButtons,				// .buttons
-		&msgBoxColor				// .colorScheme
-	};
-	int buttonId;
-	if (SDL_ShowMessageBox(&modeMsgBoxData, &buttonId) < 0) {
-		SDL_Log("error displaying message box");
-		return 1;
-	}
-	if (buttonId == 1) {
-		mIs2PlayersMode = true;
-		SDL_Log("PlayMode: 2 Players");
-	}
-	else {
-		mIs2PlayersMode = false;
-		SDL_Log("PlayMode: 1 Players");
-	}
+	mIs2PlayersMode = ModeSelect();
 
 	// Create an SDL Window
 	mWindow = SDL_CreateWindow(
-		"Game Programming in C++(Chapter1)",	// Window title
-		100,		// Top left x-coordinate of window
-		100,		// Top left y-coordinate of window
-		windowW,	// Width of window
-		windowH,	// Height of window
-		0			// Window Creation Flags (0 for no flag set)
+		"Game Programming in C++(Chapter1)", // Window title
+		100,								 // Top left x-coordinate of window
+		100,								 // Top left y-coordinate of window
+		windowW,							 // Width of window
+		windowH,							 // Height of window
+		0									 // Window Creation Flags (0 for no flag set)
 	);
-	if (!mWindow) {
+	if (!mWindow)
+	{
 		SDL_Log("Failed to create window: %s", SDL_GetError());
 		return false;
 	}
 
 	//// Create SDL renderer
 	mRenderer = SDL_CreateRenderer(
-		mWindow						// Window to create renderer for
-		, -1						// Usually -1(let SDL decide). Graphicks driver to use - if the game has multiple windows, this might be relevant.
-		, SDL_RENDERER_ACCELERATED	// Accelerated renderer(it takes advantage of graphics hardware)
-		| SDL_RENDERER_PRESENTVSYNC	// Enable vertical synchronization
+		mWindow // Window to create renderer for
+		,
+		-1 // Usually -1(let SDL decide). Graphicks driver to use - if the game has multiple windows, this might be relevant.
+		,
+		SDL_RENDERER_ACCELERATED		// Accelerated renderer(it takes advantage of graphics hardware)
+		| SDL_RENDERER_PRESENTVSYNC // Enable vertical synchronization
 	);
-	if (!mRenderer) {
+	if (!mRenderer)
+	{
 		SDL_Log("Failed to create renderer: %s", SDL_GetError);
 		return false;
 	}
 
-	// Initialize mBall & mPaddlePos
-	/* Initialize in constructor initialization list
-	mPaddlePos.x = 10.0f; mPaddlePos.y = static_cast<float>(windowH) / 2.0f; mBallPos.x = static_cast<float>(windowW) / 2.0f;
-	mBallPos.y = static_cast<float>(windowH) / 2.0f; mBallVel.x = -200.0f; mBallVel.y = 235.0f;
-	*/
+	// Initialize mBall
+	mBalls = {/*Vec*/ {/*Struct*/ {/*Vector2*/ static_cast<float>(windowW) / 2.0f, static_cast<float>(windowH) / 2.0f}, {-200.0f, 235.0f}} };
+
 	return true;
 }
 
-void Game::Shutdown() {
+bool Game::ModeSelect() {
+	const SDL_MessageBoxButtonData modeButtons[] = {
+		// {.flags, .buttonid, .text}
+		{0, 1, "2 Players"},
+		{SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "1 Player"},
+	};
+	const SDL_MessageBoxColorScheme msgBoxColor{ {
+		{255, 0, 0},   // [SDL_MESSAGEBOX_COLOR_BACKGROUND]
+		{0, 255, 0},   // [SDL_MESSAGEBOX_COLOR_TEXT]
+		{255, 255, 0}, // [SDL_MESSAGEBOX_COLOR_BUTTON_BORDER]
+		{0, 0, 255},   // [SDL_MESSAGEBOX_COLOR_BUTTON_BACKGROUND]
+		{255, 0, 255}  // [SDL_MESSAGEBOX_COLOR_BUTTON_SELECTED]
+	} };
+	const SDL_MessageBoxData modeMsgBoxData = {
+		0,							// .flags
+		NULL,						// .window
+		"Play mode select",			// .title
+		"",							// .message
+		SDL_arraysize(modeButtons), // .numbuttons
+		modeButtons,				// .buttons
+		&msgBoxColor				// .colorScheme
+	};
+	int buttonId;
+	if (SDL_ShowMessageBox(&modeMsgBoxData, &buttonId) < 0)
+	{
+		SDL_Log("error displaying message box");
+		return false;
+	}
+	if (buttonId == 1)
+	{
+		SDL_Log("PlayMode: 2 Players");
+		return true;
+	}
+	else
+	{
+		SDL_Log("PlayMode: 1 Players");
+		return false;
+	}
+}
+void Game::Shutdown()
+{
 	// the opposite of Initialize.
 	SDL_DestroyRenderer(mRenderer);
 	SDL_DestroyWindow(mWindow);
 	SDL_Quit();
-
 }
 
-void Game::RunLoop() {
+void Game::RunLoop()
+{
 	// keeps running iterations of the game loop until mIsRunning becomes false.
-	while (mIsRunning) {
+	while (mIsRunning)
+	{
 		// 3 helper functions for each phase of the game loop
 		ProcessInput();
 		UpdateGame();
@@ -126,10 +136,12 @@ void Game::RunLoop() {
 	}
 }
 
-void Game::ProcessInput() {
+void Game::ProcessInput()
+{
 	SDL_Event event;
 	// While there are still events in the queue
-	while (SDL_PollEvent(&event)) {
+	while (SDL_PollEvent(&event))
+	{
 		switch (event.type)
 		{
 			// Handle different event types here
@@ -156,7 +168,8 @@ void Game::ProcessInput() {
 	// when both W/S key are pressed, mPaddleDir is zero because add and subtract from mPaddleDir(0).
 
 	// Update paddle2 direction based on I/K keys
-	if (mIs2PlayersMode) {
+	if (mIs2PlayersMode)
+	{
 		mPaddle2Dir = 0;
 		if (state[SDL_SCANCODE_I])
 			mPaddle2Dir -= 1;
@@ -165,7 +178,8 @@ void Game::ProcessInput() {
 	}
 }
 
-void Game::UpdateGame() {
+void Game::UpdateGame()
+{
 	// frame limiting
 	// Wait until 16ms has elapsed since last frame
 	// because physics will have difference in behavior on the frame rate.
@@ -194,61 +208,62 @@ void Game::UpdateGame() {
 	if (mIs2PlayersMode)
 		UpdatePaddlePos(mPaddle2Dir, mPaddle2Pos, deltaTime);
 
-	// Update ball position based on ball 
-	mBallPos.x += mBallVel.x * deltaTime;
-	mBallPos.y += mBallVel.y * deltaTime;
+	float diff;
+	// Update ball position based on ball
+	for (auto& ball : mBalls)
+	{
+		ball.mBallPos.x += ball.mBallVel.x * deltaTime;
+		ball.mBallPos.y += ball.mBallVel.y * deltaTime;
 
-	// Bounce if needed
-	// ***for x-coordinate***
+		// Bounce if needed
+		// ***for x-coordinate***
 		// Did we intersect with the paddle?
-	// Which side(upper/lower) the ball is on.
-	// + value: ball is upper from paddle
-	// - value: ball is lower from paddle
-	float diff = mPaddlePos.y - mBallPos.y;
-	// Take absolute value of difference
-	// Get distance between paddlePos and ballPos.
-	diff = (diff > 0.0f) ? diff : -diff;
+		// Which side(upper/lower) the ball is on.
+		// + value: ball is upper from paddle
+		// - value: ball is lower from paddle
+		diff = mPaddlePos.y - ball.mBallPos.y;
+		// Take absolute value of difference
+		// Get distance between paddlePos and ballPos.
+		diff = (diff > 0.0f) ? diff : -diff;
 
-	// Our y-difference is small enough
-// the ball exists within the paddle height positions.
-	if (diff <= paddleH / 2.0f
-		// We are in the correct x-position
-		// the ball x-position is not same as the paddle x-position
-		&& mBallPos.x <= 25.0f
-		&& mBallPos.x >= 20.0f
-		// the ball is moving to the left
-		&& mBallVel.x < 0.0f)
-		BounceOffPaddle();
+		// Our y-difference is small enough
+		// the ball exists within the paddle height positions.
+		if (diff <= paddleH / 2.0f
+			// We are in the correct x-position
+			// the ball x-position is not same as the paddle x-position
+			&& ball.mBallPos.x <= 25.0f && ball.mBallPos.x >= 20.0f
+			// the ball is moving to the left
+			&& ball.mBallVel.x < 0.0f)
+			BounceOffPaddle(ball.mBallVel);
 
-	// Did the ball go off the screen?(if so, end game)
-	else if (GoOffScreen())
-		return;
+		// Did the ball go off the screen?(if so, end game)
+		else if (GoOffScreen(ball.mBallPos, ball.mBallVel))
+			return;
 
-	// Did the ball collide with the right wall?(when single player mode)
-	else if (!mIs2PlayersMode && mBallPos.x >= (windowW - thickness) && mBallVel.x > 0.0f)
-		mBallVel.x *= -1.0f;
+		// Did the ball collide with the right wall?(when single player mode)
+		else if (!mIs2PlayersMode && ball.mBallPos.x >= (windowW - thickness) && ball.mBallVel.x > 0.0f)
+			ball.mBallVel.x *= -1.0f;
 
-	// for player 2 paddle
-	if (mIs2PlayersMode) {
-		float diff2 = mPaddle2Pos.y - mBallPos.y;
-		diff2 = (diff2 > 0.0f) ? diff2 : -diff2;
-		if (diff2 <= paddleH / 2.0f
-			&& mBallPos.x >= (windowW - 25.0f)
-			&& mBallPos.x <= (windowW - 20.0f)
-			&& mBallVel.x > 0.0f)
-			BounceOffPaddle();
+		// for player 2 paddle
+		if (mIs2PlayersMode)
+		{
+			float diff2 = mPaddle2Pos.y - ball.mBallPos.y;
+			diff2 = (diff2 > 0.0f) ? diff2 : -diff2;
+			if (diff2 <= paddleH / 2.0f && ball.mBallPos.x >= (windowW - 25.0f) && ball.mBallPos.x <= (windowW - 20.0f) && ball.mBallVel.x > 0.0f)
+				BounceOffPaddle(ball.mBallVel);
+		}
+
+		// ***for y-coordinate***
+		// Did the ball collide with the top wall?
+		// Did the ball collide with the bottom wall?
+		// if ( (ball is into top wall && ball move upward) || (for the bottom) )
+		if ((ball.mBallPos.y <= thickness && ball.mBallVel.y < 0.0f) || (ball.mBallPos.y >= (windowH - thickness) && ball.mBallVel.y > 0.0f))
+			ball.mBallVel.y *= -1.0f;
 	}
-
-	// ***for y-coordinate***
-	// Did the ball collide with the top wall?
-	// Did the ball collide with the bottom wall?
-	// if ( (ball is into top wall && ball move upward) || (for the bottom) )
-	if ((mBallPos.y <= thickness && mBallVel.y < 0.0f)
-		|| (mBallPos.y >= (windowH - thickness) && mBallVel.y > 0.0f))
-		mBallVel.y *= -1.0f;
 }
 
-void Game::GenerateOutput() {
+void Game::GenerateOutput()
+{
 	// 1.Clear the back buffer to a color(the game's current buffer).
 	// 2.Draw the entire game scene.
 	// 3.Swap the front buffer and back buffer.
@@ -257,18 +272,18 @@ void Game::GenerateOutput() {
 	if (mIsPlaying)
 		SDL_SetRenderDrawColor(
 			mRenderer,
-			0,		// R
-			0,		// G
-			255,	// B
-			255		// A
+			0,	 // R
+			0,	 // G
+			255, // B
+			255	 // A
 		);
 	else
 		SDL_SetRenderDrawColor(
 			mRenderer,
-			255,	// R
-			0,		// G
-			0,		// B
-			255		// A
+			255, // R
+			0,	 // G
+			0,	 // B
+			255	 // A
 		);
 	// Clear back buffer
 	SDL_RenderClear(mRenderer);
@@ -281,19 +296,18 @@ void Game::GenerateOutput() {
 	// top-left corner of screen is (0,0).
 	// positive x is to the right, and positive y is down.
 	SDL_Rect wall{
-		0,			// Top left x
-		0,			// Top left y
-		windowW,	// Width (hard-coded)
-		thickness	// Height
+		0,		  // Top left x
+		0,		  // Top left y
+		windowW,  // Width (hard-coded)
+		thickness // Height
 	};
 	// draw the rectangle
 	SDL_RenderFillRect(mRenderer, &wall);
 
 	// Draw bottom wall
-	// same rectangle as the top except that the top-left y coordinate 
+	// same rectangle as the top except that the top-left y coordinate
 	wall.y = windowH - thickness;
 	SDL_RenderFillRect(mRenderer, &wall);
-
 
 	// Draw paddle
 	// convert(static_cast) from floats into integer(which SDL_Rect uses).
@@ -301,11 +315,11 @@ void Game::GenerateOutput() {
 		static_cast<int>(mPaddlePos.x),
 		static_cast<int>(mPaddlePos.y - paddleH / 2),
 		thickness,
-		static_cast<int>(paddleH)
-	};
+		static_cast<int>(paddleH) };
 	SDL_RenderFillRect(mRenderer, &paddle);
 
-	if (mIs2PlayersMode) {
+	if (mIs2PlayersMode)
+	{
 		// Drae paddle for player 2
 		paddle.x = static_cast<int>(mPaddle2Pos.x);
 		paddle.y = static_cast<int>(mPaddle2Pos.y - paddleH / 2);
@@ -313,7 +327,8 @@ void Game::GenerateOutput() {
 		paddle.h = static_cast<int>(paddleH);
 		SDL_RenderFillRect(mRenderer, &paddle);
 	}
-	else {
+	else
+	{
 		// Draw right wall
 		wall.x = windowW - thickness;
 		wall.y = 0;
@@ -323,22 +338,25 @@ void Game::GenerateOutput() {
 	}
 
 	// Draw ball
-	SDL_Rect ball{
-		static_cast<int>(mBallPos.x - thickness / 2),
-		static_cast<int>(mBallPos.y - thickness / 2),
-		thickness,
-		thickness
-	};
-	SDL_RenderFillRect(mRenderer, &ball);
+	for (auto& ballclass : mBalls)
+	{
+		SDL_Rect ball{
+			static_cast<int>(ballclass.mBallPos.x - thickness / 2),
+			static_cast<int>(ballclass.mBallPos.y - thickness / 2),
+			thickness,
+			thickness };
+		SDL_RenderFillRect(mRenderer, &ball);
+	}
 
 	// Swap front buffer and back buffer
 	SDL_RenderPresent(mRenderer);
 }
 
-
-void Game::UpdatePaddlePos(const int& paddleDir, Vector2& paddlePos, const float& deltaTime) {
+void Game::UpdatePaddlePos(const int& paddleDir, Vector2& paddlePos, const float& deltaTime)
+{
 	// Update paddle position based on direction(W/S keys input)
-	if (paddleDir != 0) {
+	if (paddleDir != 0)
+	{
 		// paddle move speed is 300.0f pixels/seconds
 		paddlePos.y += paddleDir * 300.0f * mMoveSpeedFactor * deltaTime;
 		// Make sure paddle doesn't move off screen!
@@ -351,7 +369,8 @@ void Game::UpdatePaddlePos(const int& paddleDir, Vector2& paddlePos, const float
 	}
 }
 
-void Game::BounceOffPaddle() {
+void Game::BounceOffPaddle(Vector2& mBallVel)
+{
 	mBallVel.x *= -1.0f;
 
 	// Paddle & Ball move speed faster
@@ -361,10 +380,11 @@ void Game::BounceOffPaddle() {
 	SDL_Log("mBallVel.x: %f mBallVel.y: %f mPaddle mMoveSpeedFactor: %f / %f", mBallVel.x, mBallVel.y, mMoveSpeedFactor, mMoveSpeedFactorMax);
 }
 
-bool Game::GoOffScreen() {
+bool Game::GoOffScreen(Vector2& mBallPos, Vector2& mBallVel)
+{
 	// Did the ball go off the screen?(if so, end game)
-	if (mBallPos.x <= 0.0f
-		|| (mIs2PlayersMode && mBallPos.x >= windowW)) {
+	if (mBallPos.x <= 0.0f || (mIs2PlayersMode && mBallPos.x >= windowW))
+	{
 		// Set BG color red.
 		mIsPlaying = false;
 		GenerateOutput();
@@ -380,7 +400,7 @@ bool Game::GoOffScreen() {
 		// Reset only the ball position.
 		mBallPos.x = static_cast<float>(windowW) / 2.0f;
 		mBallPos.y = static_cast<float>(windowH) / 2.0f;
-		mBallVel = { -200.0f,  235.0f };
+		mBallVel = { -200.0f, 235.0f };
 		mMoveSpeedFactor = 1.0f;
 		mIsPlaying = true;
 		return true;
