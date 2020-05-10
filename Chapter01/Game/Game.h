@@ -48,7 +48,9 @@ private:
 
 	// Exercise 1.1
 	bool mIs2PlayersMode;
-	bool ModeSelect();
+	bool Select2PlayersMode();
+	bool mIsMultiBallMode;
+	bool SelectMultiBallMode();
 	// Position of player 2 paddle
 	Vector2 mPaddle2Pos;
 	int mPaddle2Dir;

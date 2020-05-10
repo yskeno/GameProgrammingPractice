@@ -39,7 +39,7 @@ bool Game::Initialize()
 	}
 
 	// Is 2 Players Mode?
-	mIs2PlayersMode = ModeSelect();
+	mIs2PlayersMode = Select2PlayersMode();
 
 	// Create an SDL Window
 	mWindow = SDL_CreateWindow(
@@ -74,10 +74,14 @@ bool Game::Initialize()
 	// Initialize mBall
 	mBalls = {/*Vec*/ {/*Struct*/ {/*Vector2*/ static_cast<float>(windowW) / 2.0f, static_cast<float>(windowH) / 2.0f}, {-200.0f, 235.0f}} };
 
+	// Is Multiball Mode?
+	if (mIsMultiBallMode = SelectMultiBallMode())
+		mBalls.push_back({ mBalls[0].mBallPos,{mBalls[0].mBallVel.x * -1.0f,mBalls[0].mBallVel.y * -1.0f} });
+
 	return true;
 }
 
-bool Game::ModeSelect() {
+bool Game::Select2PlayersMode() {
 	const SDL_MessageBoxButtonData modeButtons[] = {
 		// {.flags, .buttonid, .text}
 		{0, 1, "2 Players"},
@@ -116,6 +120,47 @@ bool Game::ModeSelect() {
 		return false;
 	}
 }
+
+bool Game::SelectMultiBallMode() {
+	const SDL_MessageBoxButtonData modeButtons[] = {
+		// {.flags, .buttonid, .text}
+		{0, 1, "2 Ball"},
+		{SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "1 Ball"},
+	};
+	const SDL_MessageBoxColorScheme msgBoxColor{ {
+		{255, 0, 0},   // [SDL_MESSAGEBOX_COLOR_BACKGROUND]
+		{0, 255, 0},   // [SDL_MESSAGEBOX_COLOR_TEXT]
+		{255, 255, 0}, // [SDL_MESSAGEBOX_COLOR_BUTTON_BORDER]
+		{0, 0, 255},   // [SDL_MESSAGEBOX_COLOR_BUTTON_BACKGROUND]
+		{255, 0, 255}  // [SDL_MESSAGEBOX_COLOR_BUTTON_SELECTED]
+	} };
+	const SDL_MessageBoxData modeMsgBoxData = {
+		0,							// .flags
+		NULL,						// .window
+		"MultiBall mode select",	// .title
+		"",							// .message
+		SDL_arraysize(modeButtons), // .numbuttons
+		modeButtons,				// .buttons
+		&msgBoxColor				// .colorScheme
+	};
+	int buttonId;
+	if (SDL_ShowMessageBox(&modeMsgBoxData, &buttonId) < 0)
+	{
+		SDL_Log("error displaying message box");
+		return false;
+	}
+	if (buttonId == 1)
+	{
+		SDL_Log("MultiBallMode: 2 Balls");
+		return true;
+	}
+	else
+	{
+		SDL_Log("MultiBallMode: 1 Ball");
+		return false;
+	}
+}
+
 void Game::Shutdown()
 {
 	// the opposite of Initialize.
@@ -239,7 +284,6 @@ void Game::UpdateGame()
 		// Did the ball go off the screen?(if so, end game)
 		else if (GoOffScreen(ball.mBallPos, ball.mBallVel))
 			return;
-
 		// Did the ball collide with the right wall?(when single player mode)
 		else if (!mIs2PlayersMode && ball.mBallPos.x >= (windowW - thickness) && ball.mBallVel.x > 0.0f)
 			ball.mBallVel.x *= -1.0f;
@@ -397,15 +441,14 @@ bool Game::GoOffScreen(Vector2& mBallPos, Vector2& mBallVel)
 		else
 			SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, "Game Set!", "Player 1 win!", mWindow);
 
-		// Reset only the ball position.
-		mBallPos.x = static_cast<float>(windowW) / 2.0f;
-		mBallPos.y = static_cast<float>(windowH) / 2.0f;
-		mBallVel = { -200.0f, 235.0f };
-		mMoveSpeedFactor = 1.0f;
-		mIsPlaying = true;
-		return true;
+		// Reset ball(s) position and velocity
+		mBalls[0].mBallPos = { static_cast<float>(windowW) / 2.0f, static_cast<float>(windowH) / 2.0f };
+		mBalls[0].mBallVel = { -200.0f, 235.0f };
+		if (mIsMultiBallMode)
+			mBalls[1] = { mBalls[0].mBallPos,{mBalls[0].mBallVel.x * -1.0f,mBalls[0].mBallVel.y * -1.0f} };
 
 		//mIsRunning = false;
+		return true;
 	}
 	return false;
 }
