@@ -1,8 +1,10 @@
 #include "Game.h"
+#include "SDL/SDL_image.h"
 #include "Actor.h"
 
-const int wndW = 1024;
-const int wndH = 768;
+// default is 1024*768
+const int wndW = 640;
+const int wndH = 480;
 
 Game::Game()
 	:mWindow(nullptr)
@@ -18,7 +20,19 @@ bool Game::Initialize() {
 		return false;
 	}
 
-	mWindow=SDL_CreateWindow("Game Programming in C++ (Chapter 2)",)
+	mWindow = SDL_CreateWindow("Game Programming in C++ (Chapter 2)", 100, 100, wndW, wndH, 0);
+	if (!mWindow) {
+		SDL_Log("Failed to create window: %s", SDL_GetError());
+		return false;
+	}
+
+	mRenderer = SDL_CreateRenderer(mWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	if (!mRenderer) {
+		SDL_Log("Failed to create renderer: %s", SDL_GetError());
+		return false;
+	}
+
+	if (img_ima)
 }
 
 void Game::AddActor(Actor* actor) {
