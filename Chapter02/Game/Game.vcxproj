@@ -20,15 +20,21 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Actor.cpp" />
+    <ClCompile Include="AnimSpriteComponent.cpp" />
+    <ClCompile Include="BGSpriteComponent.cpp" />
     <ClCompile Include="Component.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="Math.cpp" />
+    <ClCompile Include="SpriteComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor.h" />
+    <ClInclude Include="AnimSpriteComponent.h" />
+    <ClInclude Include="BGSpriteComponent.h" />
     <ClInclude Include="Component.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Math.h" />
+    <ClInclude Include="SpriteComponent.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
@@ -105,7 +111,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)..\External\SDL\lib\$(PlatformTarget);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_image.dll;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(SolutionDir)\..\External\SDL\lib\$(PlatformTarget)\*.dll" "$(OutDir)" /i /s /y</Command>
@@ -123,7 +129,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)..\External\SDL\lib\$(PlatformTarget);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>SDL2.lib;SDL2main.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>SDL2.lib;SDL2main.lib;SDL2_image.dll;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(SolutionDir)\..\External\SDL\lib\$(PlatformTarget)\*.dll" "$(OutDir)" /i /s /y</Command>

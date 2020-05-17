@@ -1,6 +1,7 @@
 #include "Game.h"
 #include "SDL/SDL_image.h"
 #include "Actor.h"
+#include "SpriteComponent.h"
 
 // default is 1024*768
 const int wndW = 640;
@@ -32,7 +33,115 @@ bool Game::Initialize() {
 		return false;
 	}
 
-	if (img_ima)
+	if (IMG_Init(IMG_INIT_PNG) == 0) {
+		SDL_Log("Unable to initialize SDL image: %s", SDL_GetError());
+		return false;
+	}
+
+	LoadData();
+
+	mTicksCount = SDL_GetTicks();
+
+	return true;
+}
+
+void Game::RunLoop() {
+	while (mIsRunning)
+	{
+		ProcessInput();
+		UpdateGame();
+		GenerateOutput();
+	}
+}
+
+void Game::ProcessInput() {
+	SDL_Event event;
+	while (SDL_PollEvent(&event)) {
+		switch (event.type)
+		{
+		case SDL_QUIT:
+			mIsRunning = false;
+			break;
+		}
+	}
+
+	const Uint8* state = SDL_GetKeyboardState(NULL);
+	if (state[SDL_SCANCODE_ESCAPE])
+		mIsRunning = false;
+
+	// process ship input
+	mShip->ProcessKeyboard(state);
+}
+
+void Game::UpdateGame() {
+	// Compute delta time
+	// Wait until 16ms has elapsed since last frame
+	while (!SDL_TICKS_PASSED(SDL_GetTicks(), mTicksCount + 16))
+		;
+
+	// Component delta time (as in Chapter 1)
+	float deltaTime = 0;
+	if (deltaTime > 0.05f)
+		deltaTime = 0.05f;
+	mTicksCount = SDL_GetTicks();
+
+	// Update all actors
+	mUpdatingActors = true;
+	for (auto actor : mActors) {
+		actor->Update(deltaTime);
+	}
+	mUpdatingActors = false;
+
+	// Move any pending actors to mActors
+	for (auto pending : mPendingActors) {
+		mActors.emplace_back(pending);
+	}
+	mPendingActors.clear();
+
+	// Add any dead actors to temp vector
+	std::vector<Actor*> deadActors;
+	for (auto actor : mActors) {
+		if (actor->GetState() == Actor::EDead)
+			deadActors.emplace_back(actor);
+	}
+
+	// Delete dead actors (which removes them from mActors)
+	for (auto actor : deadActors) {
+		delete actor;
+	}
+}
+
+void Game::GenerateOutput() {
+	SDL_SetRenderDrawColor(mRenderer, 0, 0, 0, 255);
+	SDL_RenderClear(mRenderer);
+
+	// Draw all sprite components
+	for (auto sprite : mSprites) {
+		sprite->Draw(mRenderer);
+	}
+
+	SDL_RenderPresent(mRenderer);
+}
+
+void Game::LoadData() {
+	// Create player's ship
+	mShip = new Ship(this);
+	mShip->SetPosition(Vector2(100.0f, 384.0f));
+	mShip->SetScale(1.5f);
+
+	// Create actor for the background (this doesn't need a subclass)
+	Actor* temp = new Actor(this);
+	temp->SetPosition(Vector2(static_cast<float>(wndW / 2), static_cast<float>(wndH));
+	// Create the "far back" background
+	BGSpriteComponent* bg = new BGSpriteComponent(temp);
+	bg->SetScreenSize(Vector2(wndW, wndH));
+	std::vector<SDL_Texture*> bgtexs = {
+		GetTexture("Assets/Farback01.png"),
+		GetTexture("Assets/Farback02.png")
+	};
+	bg->SetBGTextures(bgtexs);
+	bg->SetScrollSpeed(-100.0f);
+	// Create the closer background
 }
 
 void Game::AddActor(Actor* actor) {
@@ -61,32 +170,22 @@ void Game::RemoveActor(Actor* actor) {
 	}
 }
 
-void Game::UpdateGame() {
-	// Component delta time (as in Chapter 1)
-	float deltaTime = 0;
-
-	// Update all actors
-	mUpdatingActors = true;
-	for (auto actor : mActors) {
-		actor->Update(deltaTime);
-	}
-	mUpdatingActors = false;
-
-	// Move any pending actors to mActors
-	for (auto pending : mPendingActors) {
-		mActors.emplace_back(pending);
-	}
-	mPendingActors.clear();
-
-	// Add any dead actors to temp vector
-	std::vector<Actor*> deadActors;
-	for (auto actor : mActors) {
-		if (actor->GetState() == Actor::EDead)
-			deadActors.emplace_back(actor);
+void Game::AddSprite(SpriteComponent* sprite) {
+	// Find the insertion point in the sorted vector
+	// (The first element with a higher draw order than me)
+	int myDrawOrder = sprite->GetDrawOrder();
+	auto iter = mSprites.begin();
+	for (; iter != mSprites.end(); ++iter) {
+		if (myDrawOrder < (*iter)->GetDrawOrder())
+			break;
 	}
 
-	// Delete dead actors (which removes them from mActors)
-	for (auto actor : deadActors) {
-		delete actor;
-	}
+	// Insert element before position of iterator
+	mSprites.insert(iter, sprite);
+}
+
+void Game::RemoveSprite(SpriteComponent* sprite) {
+	// (We can't swap because it ruins ordering)
+	auto iter = std::find(mSprites.begin(), mSprites.end(), sprite);
+	mSprites.erase(iter);
 }
