@@ -2,16 +2,22 @@
 #include "SDL/SDL_image.h"
 #include "Actor.h"
 #include "SpriteComponent.h"
+#include "Ship.h"
+#include "BGSpriteComponent.h"
 
+/*
 // default is 1024*768
-const int wndW = 640;
-const int wndH = 480;
+const int wndW = 1024;
+const int wndH = 768;
+*/
 
 Game::Game()
-	:mWindow(nullptr)
+	: mWindow(nullptr)
 	, mRenderer(nullptr)
 	, mIsRunning(true)
 	, mUpdatingActors(false)
+	, mShip(nullptr)
+	, mTicksCount(0)
 {
 }
 
@@ -21,7 +27,7 @@ bool Game::Initialize() {
 		return false;
 	}
 
-	mWindow = SDL_CreateWindow("Game Programming in C++ (Chapter 2)", 100, 100, wndW, wndH, 0);
+	mWindow = SDL_CreateWindow("Game Programming in C++ (Chapter 2)", 100, 100, 1024, 768, 0);
 	if (!mWindow) {
 		SDL_Log("Failed to create window: %s", SDL_GetError());
 		return false;
@@ -80,7 +86,7 @@ void Game::UpdateGame() {
 		;
 
 	// Component delta time (as in Chapter 1)
-	float deltaTime = 0;
+	float deltaTime = (SDL_GetTicks() - mTicksCount) / 1000.0f;
 	if (deltaTime > 0.05f)
 		deltaTime = 0.05f;
 	mTicksCount = SDL_GetTicks();
@@ -131,10 +137,10 @@ void Game::LoadData() {
 
 	// Create actor for the background (this doesn't need a subclass)
 	Actor* temp = new Actor(this);
-	temp->SetPosition(Vector2(static_cast<float>(wndW / 2), static_cast<float>(wndH));
+	temp->SetPosition(Vector2(512.0f, 384.0f));
 	// Create the "far back" background
 	BGSpriteComponent* bg = new BGSpriteComponent(temp);
-	bg->SetScreenSize(Vector2(wndW, wndH));
+	bg->SetScreenSize(Vector2(1024.0f, 768.0f));
 	std::vector<SDL_Texture*> bgtexs = {
 		GetTexture("Assets/Farback01.png"),
 		GetTexture("Assets/Farback02.png")
@@ -142,6 +148,63 @@ void Game::LoadData() {
 	bg->SetBGTextures(bgtexs);
 	bg->SetScrollSpeed(-100.0f);
 	// Create the closer background
+	bg = new BGSpriteComponent(temp, 50);
+	bg->SetScreenSize(Vector2(1024.0f, 768.0f));
+	bgtexs = {
+		GetTexture("Assets/Stars.png"),
+		GetTexture("Assets/Stars.png"),
+	};
+	bg->SetBGTextures(bgtexs);
+	bg->SetScrollSpeed(-200.0f);
+}
+
+void Game::UnloadData() {
+	// Delete actors
+	// Because ~Actor calls RemoveActor, have to use a different style loop
+	while (!mActors.empty()) {
+		delete mActors.back();
+	}
+
+	// Destroy textures
+	for (auto i : mTextures) {
+		SDL_DestroyTexture(i.second);
+	}
+	mTextures.clear();
+}
+
+SDL_Texture* Game::GetTexture(const std::string& fileName) {
+	SDL_Texture* tex = nullptr;
+	// Is the texture already in the map?
+	auto iter = mTextures.find(fileName);
+	if (iter != mTextures.end())
+		tex = iter->second;
+	else {
+		// Load from file
+		SDL_Surface* surf = IMG_Load(fileName.c_str());
+		if (!surf) {
+			SDL_Log("Failed to load texture file %s", fileName.c_str());
+			return nullptr;
+		}
+
+		// Create texture from surface
+		tex = SDL_CreateTextureFromSurface(mRenderer, surf);
+		SDL_FreeSurface(surf);
+		if (!tex) {
+			SDL_Log("Failed to convert surface to texture for %s", fileName.c_str());
+			return nullptr;
+		}
+
+		mTextures.emplace(fileName.c_str(), tex);
+	}
+	return tex;
+}
+
+void Game::Shutdown() {
+	UnloadData();
+	IMG_Quit();
+	SDL_DestroyRenderer(mRenderer);
+	SDL_DestroyWindow(mWindow);
+	SDL_Quit();
 }
 
 void Game::AddActor(Actor* actor) {
