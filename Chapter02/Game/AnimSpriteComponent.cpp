@@ -23,3 +23,12 @@ void AnimSpriteComponent::Update(float deltaTime) {
 		SetTexture(mAnimTextures[static_cast<int>(mCurrFrames)]);
 	}
 }
+
+void AnimSpriteComponent::SetAnimTextures(const std::vector<SDL_Texture*>& textures) {
+	mAnimTextures = textures;
+	if (mAnimTextures.size() > 0) {
+		// Set the active texture to first frame
+		mCurrFrames = 0.0f;
+		SetTexture(mAnimTextures[0]);
+	}
+}
