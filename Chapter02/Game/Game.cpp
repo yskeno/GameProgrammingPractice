@@ -5,12 +5,6 @@
 #include "Ship.h"
 #include "BGSpriteComponent.h"
 
-/*
-// default is 1024*768
-const int wndW = 1024;
-const int wndH = 768;
-*/
-
 Game::Game()
 	: mWindow(nullptr)
 	, mRenderer(nullptr)
@@ -27,7 +21,7 @@ bool Game::Initialize() {
 		return false;
 	}
 
-	mWindow = SDL_CreateWindow("Game Programming in C++ (Chapter 2)", 100, 100, 1024, 768, 0);
+	mWindow = SDL_CreateWindow("Game Programming in C++ (Chapter 2)", 100, 100, static_cast<int>(windowW), static_cast<int>(windowH), 0);
 	if (!mWindow) {
 		SDL_Log("Failed to create window: %s", SDL_GetError());
 		return false;
@@ -137,10 +131,10 @@ void Game::LoadData() {
 
 	// Create actor for the background (this doesn't need a subclass)
 	Actor* temp = new Actor(this);
-	temp->SetPosition(Vector2(512.0f, 384.0f));
+	temp->SetPosition(Vector2(windowW / 2.0f, windowH / 2.0f));
 	// Create the "far back" background
 	BGSpriteComponent* bg = new BGSpriteComponent(temp);
-	bg->SetScreenSize(Vector2(1024.0f, 768.0f));
+	bg->SetScreenSize(Vector2(windowW, windowH));
 	std::vector<SDL_Texture*> bgtexs = {
 		GetTexture("Assets/Farback01.png"),
 		GetTexture("Assets/Farback02.png")
@@ -149,7 +143,7 @@ void Game::LoadData() {
 	bg->SetScrollSpeed(-100.0f);
 	// Create the closer background
 	bg = new BGSpriteComponent(temp, 50);
-	bg->SetScreenSize(Vector2(1024.0f, 768.0f));
+	bg->SetScreenSize(Vector2(windowW, windowH));
 	bgtexs = {
 		GetTexture("Assets/Stars.png"),
 		GetTexture("Assets/Stars.png"),

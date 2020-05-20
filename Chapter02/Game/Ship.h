@@ -13,4 +13,8 @@ public:
 private:
 	float mRightSpeed;
 	float mDownSpeed;
+
+	// ***yskeno***
+	float mWindowW;
+	float mWindowH;
 };

@@ -20,6 +20,12 @@ public:
 
 	SDL_Texture* GetTexture(const std::string& fileName);
 
+	// ***yskeno***
+	// default = 1024/768
+	float windowW = 800.0f;
+	float windowH = 600.0f;
+
+
 private:
 	void ProcessInput();
 	void UpdateGame();

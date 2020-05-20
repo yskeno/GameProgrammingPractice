@@ -19,6 +19,10 @@ Ship::Ship(Game* game)
 		game->GetTexture("Assets/Ship04.png"),
 	};
 	asc->SetAnimTextures(anims);
+
+	// ***yskeno***
+	mWindowW = game->windowW;
+	mWindowH = game->windowH;
 }
 
 void Ship::UpdateActor(float deltaTime) {
@@ -31,12 +35,12 @@ void Ship::UpdateActor(float deltaTime) {
 	// Restrict position to left half of screen
 	if (pos.x < 25.0f)
 		pos.x = 25.0f;
-	else if (pos.x > 500.0f)
-		pos.x = 500.0f;
+	else if (pos.x > mWindowW / 2)	// ***yskeno*** Default = 500.0f
+		pos.x = mWindowW / 2;
 	if (pos.y < 25.0f)
 		pos.y = 25.0f;
-	else if (pos.y > 743.0f)
-		pos.y = 743.0f;
+	else if (pos.y > mWindowH-25)	// ***yskeno*** Default = 734.0f
+		pos.y = mWindowH - 25;
 	SetPosition(pos);
 }
 
