@@ -15,8 +15,11 @@ SpriteComponent::SpriteComponent(Actor* owner, int drawOrder)
 SpriteComponent::~SpriteComponent() {
 	mOwner->GetGame()->RemoveSprite(this);
 }
-
 void SpriteComponent::Draw(SDL_Renderer* renderer) {
+	Draw(renderer, SDL_FLIP_NONE);
+}
+
+void SpriteComponent::Draw(SDL_Renderer* renderer, SDL_RendererFlip rendererFlip) {
 	if (mTexture) {
 		// Owner's position variable specifies the center position of the actor.
 		// So, compute the coordinates for the top-left corner.
@@ -56,7 +59,7 @@ void SpriteComponent::Draw(SDL_Renderer* renderer) {
 			// But this is the opposite of the unit circle so negate the angle.
 			-Math::ToDegrees(mOwner->GetRotation()),
 			nullptr,
-			SDL_FLIP_NONE);
+			rendererFlip);
 	}
 }
 

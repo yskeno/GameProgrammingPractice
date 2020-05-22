@@ -6,7 +6,7 @@ const float HorizontalSpeed = 250.0f;
 const float VerticalSpeed = 300.0f;
 
 Ship::Ship(Game* game)
-	:Actor(game)
+	: Actor(game)
 	, mRightSpeed(0.0f)
 	, mDownSpeed(0.0f) {
 	// Create an animated sprite component
@@ -19,10 +19,6 @@ Ship::Ship(Game* game)
 		game->GetTexture("Assets/Ship04.png"),
 	};
 	asc->SetAnimTextures(anims);
-
-	// ***yskeno***
-	mWindowW = game->windowW;
-	mWindowH = game->windowH;
 }
 
 void Ship::UpdateActor(float deltaTime) {
@@ -39,7 +35,7 @@ void Ship::UpdateActor(float deltaTime) {
 		pos.x = mWindowW / 2;
 	if (pos.y < 25.0f)
 		pos.y = 25.0f;
-	else if (pos.y > mWindowH-25)	// ***yskeno*** Default = 734.0f
+	else if (pos.y > mWindowH - 25)	// ***yskeno*** Default = 734.0f
 		pos.y = mWindowH - 25;
 	SetPosition(pos);
 }

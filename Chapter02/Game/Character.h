@@ -1,16 +1,19 @@
 #pragma once
 #include "Actor.h"
-class Ship :
+class Character :
 	public Actor
 {
 public:
-	Ship(class Game* game);
+	Character(class Game* game);
 	void UpdateActor(float deltaTime) override;
 	void ProcessKeyboard(const uint8_t* state);
 	float GetRightSpeed() const { return mRightSpeed; }
-	float GetDownSpeed() const { return mDownSpeed; }
+	//float GetDownSpeed() const { return mDownSpeed; }
 
 private:
 	float mRightSpeed;
-	float mDownSpeed;
+	//float mDownSpeed;
+
+	class AnimSpriteComponent* mAsc;
 };
+

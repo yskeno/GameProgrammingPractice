@@ -53,5 +53,10 @@ private:
 	// Components held by this actor
 	std::vector<class Component*> mComponents;
 	class Game* mGame;
+
+protected:
+	// ***yskeno***
+	float mWindowW;
+	float mWindowH;
 };
 

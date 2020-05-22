@@ -10,6 +10,10 @@ Actor::Actor(Game* game)
 	, mGame(game)
 {
 	mGame->AddActor(this);
+
+	// ***yskeno***
+	mWindowW = game->windowW;
+	mWindowH = game->windowH;
 }
 
 Actor::~Actor() {
@@ -34,7 +38,7 @@ void Actor::UpdateComponents(float deltaTime) {
 	}
 }
 
-void Actor::UpdateActor(float deltaTime){
+void Actor::UpdateActor(float deltaTime) {
 }
 
 void Actor::AddComponent(Component* component) {

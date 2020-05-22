@@ -53,4 +53,7 @@ private:
 
 	// Game-specific
 	class Ship* mShip;	// Player's ship
+
+	// ***yskeno*** Exercise 2.2
+	class Character* mCharacter;
 };
