@@ -24,6 +24,11 @@ public:
 	// Any actor-specific update code (overridable)
 	virtual void UpdateActor(float deltaTime);
 
+	// ProcessInput() function called from Game (not overridable)
+	void ProcessInput(const uint8_t* keyState);
+	// Any actor-specific input code (overridable)
+	virtual void ActorInput(const uint8_t* keyState);
+
 	// Getters/setters
 	const Vector2& GetPosition() const { return mPosition; }
 	void SetPosition(const Vector2& pos) { mPosition = pos; }
@@ -32,10 +37,12 @@ public:
 	float GetRotation() const { return mRotation; }
 	void SetRotation(float rotation) { mRotation = rotation; }
 
+	Vector2 GetForward() const { return Vector2(Math::Cos(mRotation), -Math::Sin(mRotation)); }
+
 	State GetState() const { return mState; }
 	void SetState(State state) { mState = state; }
 
-	class Game* GetGame() { return mGame;}
+	class Game* GetGame() { return mGame; }
 
 	// Add/remove components
 	void AddComponent(class Component* component);
@@ -53,10 +60,5 @@ private:
 	// Components held by this actor
 	std::vector<class Component*> mComponents;
 	class Game* mGame;
-
-protected:
-	// ***yskeno***
-	float mWindowW;
-	float mWindowH;
 };
 

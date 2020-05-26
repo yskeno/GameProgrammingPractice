@@ -10,10 +10,6 @@ Actor::Actor(Game* game)
 	, mGame(game)
 {
 	mGame->AddActor(this);
-
-	// ***yskeno***
-	mWindowW = game->windowW;
-	mWindowH = game->windowH;
 }
 
 Actor::~Actor() {
@@ -41,10 +37,23 @@ void Actor::UpdateComponents(float deltaTime) {
 void Actor::UpdateActor(float deltaTime) {
 }
 
+void Actor::ProcessInput(const uint8_t* keyState) {
+	if (mState == EActive) {
+		// First process input for components
+		for (auto comp : mComponents) {
+			comp->ProcessInput(keyState);
+		}
+		ActorInput(keyState);
+	}
+}
+
+void Actor::ActorInput(const uint8_t* keyState){}
+
 void Actor::AddComponent(Component* component) {
 	// Find he insertion point in the sorted vector
 	// (The first element with a order higher than me)
 	int myOrder = component->GetUpdateOrder();
+
 	auto iter = mComponents.begin();
 	for (; iter != mComponents.end(); ++iter) {
 		if (myOrder < (*iter)->GetUpdateOrder())
