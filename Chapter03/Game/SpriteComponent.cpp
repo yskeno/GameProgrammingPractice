@@ -3,7 +3,7 @@
 #include "Game.h"
 
 SpriteComponent::SpriteComponent(Actor* owner, int drawOrder)
-	:Component(owner)
+	: Component(owner)
 	, mTexture(nullptr)
 	, mDrawOrder(drawOrder)
 	, mTexHeight(0)
@@ -16,10 +16,6 @@ SpriteComponent::~SpriteComponent() {
 	mOwner->GetGame()->RemoveSprite(this);
 }
 void SpriteComponent::Draw(SDL_Renderer* renderer) {
-	Draw(renderer, SDL_FLIP_NONE);
-}
-
-void SpriteComponent::Draw(SDL_Renderer* renderer, SDL_RendererFlip rendererFlip) {
 	if (mTexture) {
 		// Owner's position variable specifies the center position of the actor.
 		// So, compute the coordinates for the top-left corner.
@@ -34,13 +30,6 @@ void SpriteComponent::Draw(SDL_Renderer* renderer, SDL_RendererFlip rendererFlip
 		// Draw (have to convert angle from radians to degrees, and clockwise to counter)
 		// Renders a texture to rhe rendering target
 		// Returns 0 on success, negative value on failure
-		/*SDL_RenderCopy(
-			SDL_Renderer* renderer,		// Render target to draw to
-			SDL_Texture* texture,		// Texture to draw
-			const SDL_Rect* srcrect,	// Part of texture to draw (null if whole)
-			const SDL_Rect* dstrect		// Rectangle to draw on the target
-		);*/
-		// for more advanced behavior (such as rotating sprites), use SDL_RenderCopyEx().
 		/*SDL_RenderCopyEx(
 			SDL_Renderer* renderer,		// Render target to draw to
 			SDL_Texture* texture,		// Texture to draw
@@ -59,7 +48,7 @@ void SpriteComponent::Draw(SDL_Renderer* renderer, SDL_RendererFlip rendererFlip
 			// But this is the opposite of the unit circle so negate the angle.
 			-Math::ToDegrees(mOwner->GetRotation()),
 			nullptr,
-			rendererFlip);
+			SDL_FLIP_NONE);
 	}
 }
 

@@ -3,8 +3,7 @@
 #include "Actor.h"
 #include "SpriteComponent.h"
 #include "Ship.h"
-#include "BGSpriteComponent.h"
-#include "Character.h"
+#include "Asteroid.h"
 
 Game::Game()
 	: mWindow(nullptr)
@@ -72,7 +71,6 @@ void Game::ProcessInput() {
 
 	// process ship input
 	mShip->ProcessKeyboard(state);
-	mCharacter->ProcessKeyboard(state);
 }
 
 void Game::UpdateGame() {
@@ -131,31 +129,11 @@ void Game::LoadData() {
 	mShip->SetPosition(Vector2(windowW / 10.0f, windowH / 2.0f));
 	mShip->SetScale(1.5f);
 
-	// ***yskeno*** Exercise 2.2
-	mCharacter = new Character(this);
-	mCharacter->SetPosition(Vector2(windowW / 10.0f, windowH - 64.0f));
-
-	// Create actor for the background (this doesn't need a subclass)
-	Actor* temp = new Actor(this);
-	temp->SetPosition(Vector2(windowW / 2.0f, windowH / 2.0f));
-	// Create the "far back" background
-	BGSpriteComponent* bg = new BGSpriteComponent(temp);
-	bg->SetScreenSize(Vector2(windowW, windowH));
-	std::vector<SDL_Texture*> bgtexs = {
-		GetTexture("Assets/Farback01.png"),
-		GetTexture("Assets/Farback02.png")
-	};
-	bg->SetBGTextures(bgtexs);
-	bg->SetScrollSpeed(-100.0f);
-	// Create the closer background
-	bg = new BGSpriteComponent(temp, 50);
-	bg->SetScreenSize(Vector2(windowW, windowH));
-	bgtexs = {
-		GetTexture("Assets/Stars.png"),
-		GetTexture("Assets/Stars.png"),
-	};
-	bg->SetBGTextures(bgtexs);
-	bg->SetScrollSpeed(-200.0f);
+	// Create asteroids
+	const int numAsteroids = 20;
+	for (int i = 0; i < numAsteroids; i++) {
+		new Asteroid(this);
+	}
 }
 
 void Game::UnloadData() {
