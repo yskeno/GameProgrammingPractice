@@ -1,5 +1,6 @@
 #include "Game.h"
 #include "SDL/SDL_image.h"
+#include "Random.h"
 #include "Actor.h"
 #include "SpriteComponent.h"
 #include "Ship.h"
@@ -37,6 +38,8 @@ bool Game::Initialize() {
 		SDL_Log("Unable to initialize SDL image: %s", SDL_GetError());
 		return false;
 	}
+
+	Random::Init();
 
 	LoadData();
 
@@ -178,6 +181,16 @@ SDL_Texture* Game::GetTexture(const std::string& fileName) {
 		mTextures.emplace(fileName.c_str(), tex);
 	}
 	return tex;
+}
+
+void Game::AddAsteroid(Asteroid* ast) {
+	mAsteroids.emplace_back(ast);
+}
+
+void Game::RemoveAsteroid(Asteroid* ast) {
+	auto iter = std::find(mAsteroids.begin(), mAsteroids.end(), ast);
+	if (iter != mAsteroids.end())
+		mAsteroids.erase(iter);
 }
 
 void Game::Shutdown() {

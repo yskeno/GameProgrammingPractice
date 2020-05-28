@@ -4,6 +4,11 @@
 #include <unordered_map>
 #include <vector>
 
+// ***yskeno***
+// default = 1024/768
+float windowW = 800.0f;
+float windowH = 600.0f;
+
 class Game
 {
 public:
@@ -20,11 +25,10 @@ public:
 
 	SDL_Texture* GetTexture(const std::string& fileName);
 
-	// ***yskeno***
-	// default = 1024/768
-	float windowW = 800.0f;
-	float windowH = 600.0f;
-
+	// Game-specific (add/remove asteroid)
+	void AddAsteroid(class Asteroid* ast);
+	void RemoveAsteroid(class Asteroid* ast);
+	std::vector<class Asteroid*>& GetAsteroids() { return mAsteroids; }
 
 private:
 	void ProcessInput();
@@ -53,7 +57,5 @@ private:
 
 	// Game-specific
 	class Ship* mShip;	// Player's ship
-
-	// ***yskeno*** Exercise 2.2
-	class Character* mCharacter;
+	std::vector<class Asteroid*> mAsteroids;
 };
