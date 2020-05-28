@@ -2,6 +2,7 @@
 #include "SpriteComponent.h"
 #include "Game.h"
 #include "InputComponent.h"
+#include "Laser.h"
 
 const float HorizontalSpeed = 250.0f;
 const float VerticalSpeed = 300.0f;
@@ -31,5 +32,11 @@ void Ship::UpdateActor(float deltaTime) {
 void Ship::ActorInput(const uint8_t* keyState) {
 	if (keyState[SDL_SCANCODE_SPACE] && mLaserCooldown <= 0.0f) {
 		// Create alaser and set its position/rotation to mine
+		Laser* laser = new Laser(GetGame());
+		laser->SetPosition(GetPosition());
+		laser->SetRotation(GetRotation());
+
+		// Reset laser cooldown (half second)
+		mLaserCooldown = 0.5f;
 	}
 }

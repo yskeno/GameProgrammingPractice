@@ -11,5 +11,6 @@ public:
 	void ActorInput(const uint8_t* keyState) override;
 
 private:
+	// the amount of time until the player can fire again.
 	float mLaserCooldown;
 };
