@@ -65,12 +65,15 @@ void Game::ProcessInput() {
 		}
 	}
 
-	const Uint8* state = SDL_GetKeyboardState(NULL);
-	if (state[SDL_SCANCODE_ESCAPE])
+	const Uint8* keyState = SDL_GetKeyboardState(NULL);
+	if (keyState[SDL_SCANCODE_ESCAPE])
 		mIsRunning = false;
 
-	// process ship input
-	mShip->ProcessKeyboard(state);
+	mUpdatingActors = true;
+	for (auto actor : mActors) {
+		actor->ProcessInput(keyState);
+	}
+	mUpdatingActors = false;
 }
 
 void Game::UpdateGame() {

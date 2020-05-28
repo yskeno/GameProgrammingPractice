@@ -43,11 +43,13 @@ void Actor::ProcessInput(const uint8_t* keyState) {
 		for (auto comp : mComponents) {
 			comp->ProcessInput(keyState);
 		}
+
 		ActorInput(keyState);
 	}
 }
 
-void Actor::ActorInput(const uint8_t* keyState){}
+void Actor::ActorInput(const uint8_t* keyState){
+}
 
 void Actor::AddComponent(Component* component) {
 	// Find he insertion point in the sorted vector

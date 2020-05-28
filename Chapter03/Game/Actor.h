@@ -27,6 +27,7 @@ public:
 	// ProcessInput() function called from Game (not overridable)
 	void ProcessInput(const uint8_t* keyState);
 	// Any actor-specific input code (overridable)
+	// Actor subclasses that want custom input can override this.
 	virtual void ActorInput(const uint8_t* keyState);
 
 	// Getters/setters
