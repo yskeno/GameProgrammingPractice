@@ -3,10 +3,14 @@
 #include "InputComponent.h"
 #include "Game.h"
 #include "Laser.h"
+#include "CircleComponent.h"
+#include "Asteroid.h"
 
 Ship::Ship(Game* game)
-	: Actor(game)
+	:Actor(game)
 	, mLaserCooldown(0.0f)
+	, mCircle(nullptr)
+	, mInvincibleTime(1.0f)
 {
 	// Create a sprite component
 	SpriteComponent* sc = new SpriteComponent(this, 150);
@@ -20,10 +24,37 @@ Ship::Ship(Game* game)
 	ic->SetCounterClockwiseKey(SDL_SCANCODE_D);
 	ic->SetMaxForwardSpeed(300.0f);
 	ic->SetMaxAngularSpeed(Math::TwoPi);
+
+	mCircle = new CircleComponent(this);
+	mCircle->SetRadius(40.0f);
 }
 
 void Ship::UpdateActor(float deltaTime) {
 	mLaserCooldown -= deltaTime;
+
+	// ***yskeno*** Exercise3.2
+	if (mInvincibleTime > 0.0f) {
+		mInvincibleTime -= deltaTime;
+
+		if (GetScale() == 1.0f)
+			SetScale(0.0f);
+		else
+			SetScale(1.0f);
+
+		if (mInvincibleTime < 0.0f) {
+			mInvincibleTime = 0.0f;
+			SetScale(1.0f);
+		}
+	}
+	else {
+		for (auto ast : GetGame()->GetAsteroids()) {
+			if (Intersect(*mCircle, *(ast->GetCircle()))) {
+				SetState(EDead);
+				mInvincibleTime = 1.0f;
+				break;
+			}
+		}
+	}
 }
 
 void Ship::ActorInput(const uint8_t* keyState) {

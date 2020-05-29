@@ -3,6 +3,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "Math.h"
 
 class Game
 {
@@ -58,4 +59,6 @@ private:
 	// Game-specific
 	class Ship* mShip;	// Player's ship
 	std::vector<class Asteroid*> mAsteroids;
+
+	Vector2 mShipStartPosition;
 };

@@ -13,6 +13,7 @@ Game::Game()
 	, mUpdatingActors(false)
 	, mShip(nullptr)
 	, mTicksCount(0)
+	, mShipStartPosition(512.0f, 384.0f)
 {
 }
 
@@ -113,7 +114,13 @@ void Game::UpdateGame() {
 
 	// Delete dead actors (which removes them from mActors)
 	for (auto actor : deadActors) {
-		delete actor;
+		// ***yskeno*** Exercise 3.2
+		if (actor == mShip) {
+			mShip->SetPosition(mShipStartPosition);
+			mShip->SetState(Actor::EActive);
+		}
+		else
+			delete actor;
 	}
 }
 
