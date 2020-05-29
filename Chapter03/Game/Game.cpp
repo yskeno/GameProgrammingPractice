@@ -1,10 +1,10 @@
 #include "Game.h"
 #include "SDL/SDL_image.h"
-#include "Random.h"
 #include "Actor.h"
 #include "SpriteComponent.h"
 #include "Ship.h"
 #include "Asteroid.h"
+#include "Random.h"
 
 Game::Game()
 	: mWindow(nullptr)
@@ -22,7 +22,7 @@ bool Game::Initialize() {
 		return false;
 	}
 
-	mWindow = SDL_CreateWindow("Game Programming in C++ (Chapter 2)", 100, 100, static_cast<int>(windowW), static_cast<int>(windowH), 0);
+	mWindow = SDL_CreateWindow("Game Programming in C++ (Chapter 3)", 100, 100, 1024, 768, 0);
 	if (!mWindow) {
 		SDL_Log("Failed to create window: %s", SDL_GetError());
 		return false;
@@ -118,7 +118,7 @@ void Game::UpdateGame() {
 }
 
 void Game::GenerateOutput() {
-	SDL_SetRenderDrawColor(mRenderer, 0, 0, 0, 255);
+	SDL_SetRenderDrawColor(mRenderer, 220, 220, 220, 255);
 	SDL_RenderClear(mRenderer);
 
 	// Draw all sprite components
@@ -132,8 +132,8 @@ void Game::GenerateOutput() {
 void Game::LoadData() {
 	// Create player's ship
 	mShip = new Ship(this);
-	mShip->SetPosition(Vector2(windowW / 10.0f, windowH / 2.0f));
-	mShip->SetScale(1.5f);
+	mShip->SetPosition(Vector2(512.0f, 384.0f));
+	mShip->SetRotation(Math::PiOver2);
 
 	// Create asteroids
 	const int numAsteroids = 20;

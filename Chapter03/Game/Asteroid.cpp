@@ -1,8 +1,8 @@
 #include "Asteroid.h"
-#include "Random.h"
 #include "SpriteComponent.h"
-#include "Game.h"
 #include "MoveComponent.h"
+#include "Game.h"
+#include "Random.h"
 #include "CircleComponent.h"
 
 Asteroid::Asteroid(Game* game)
@@ -32,5 +32,5 @@ Asteroid::Asteroid(Game* game)
 }
 
 Asteroid::~Asteroid() {
-
+	GetGame()->RemoveAsteroid(this);
 }

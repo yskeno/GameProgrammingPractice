@@ -1,11 +1,8 @@
 #include "Ship.h"
 #include "SpriteComponent.h"
-#include "Game.h"
 #include "InputComponent.h"
+#include "Game.h"
 #include "Laser.h"
-
-const float HorizontalSpeed = 250.0f;
-const float VerticalSpeed = 300.0f;
 
 Ship::Ship(Game* game)
 	: Actor(game)

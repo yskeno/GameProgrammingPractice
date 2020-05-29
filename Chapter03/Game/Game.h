@@ -4,14 +4,14 @@
 #include <unordered_map>
 #include <vector>
 
-// ***yskeno***
-// default = 1024/768
-float windowW = 800.0f;
-float windowH = 600.0f;
-
 class Game
 {
 public:
+	// ***yskeno***
+	// default: 1024/768
+	float windowW = 800.0f;
+	float windowH = 600.0f;
+
 	Game();
 	bool Initialize();
 	void RunLoop();
