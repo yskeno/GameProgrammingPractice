@@ -121,7 +121,7 @@ bool AStar(const WeightedGraph& g, const WeightedGraphNode* start,
 	} while (current != goal);
 
 	// Did we find a path?
-	return (current == goal) ? true; false;
+	return (current == goal) ? true: false;
 }
 
 // Greedy Best-First Search
@@ -360,7 +360,7 @@ float GetScore(const GameState& state) {
 	}
 
 	// Are any of the columns the same
-	for (int j = 0;; j < 3; j++) {
+	for (int j = 0; j < 3; j++) {
 		bool same = true;
 		GameState::SquareState v = state.mBoard[0][j];
 		for (int i = 1; i < 3; i++) {

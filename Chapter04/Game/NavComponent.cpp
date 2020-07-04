@@ -20,6 +20,11 @@ void NavComponent::Update(float deltaTime) {
 	MoveComponent::Update(deltaTime);
 }
 
+void NavComponent::StartPath(const Tile* start) {
+	mNextNode = start->GetParent();
+	TurnTo(mNextNode->GetPosition());
+}
+
 // Rotates the actor to face a point
 void NavComponent::TurnTo(const Vector2& pos) {
 	// Vector from me to pos

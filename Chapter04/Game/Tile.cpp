@@ -38,9 +38,9 @@ void Tile::UpdateTexture() {
 		break;
 	case EPath:
 		if (mSelected)
-			text = "Assets/TileGraySelected.png";
+			text = "Assets/TileGreySelected.png";
 		else
-			text = "Assets/TileGray.png";
+			text = "Assets/TileGrey.png";
 		break;
 	case EDefault:
 	default:

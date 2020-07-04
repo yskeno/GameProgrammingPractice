@@ -60,7 +60,7 @@ void Grid::SelectTile(size_t row, size_t col) {
 }
 
 void Grid::ProcessClick(int x, int y) {
-	y -= static_cast<int>(TileSize);
+	y -= static_cast<int>(StartY - TileSize / 2);
 	if (y >= 0) {
 		x /= static_cast<int>(TileSize);
 		y /= static_cast<int>(TileSize);
