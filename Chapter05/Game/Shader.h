@@ -20,7 +20,8 @@ public:
 
 private:
 	// Tries to compile the specified shader
-	bool CompileShader(const std::string& fileName, GLenum shaderType, GLuint& outShader);
+	bool CompileShader(const std::string& fileName,
+		GLenum shaderType, GLuint& outShader);
 
 	// Tests whether shader compiled successfully
 	bool IsCompiled(GLuint shader);
